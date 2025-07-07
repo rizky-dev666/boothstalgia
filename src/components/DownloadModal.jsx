@@ -2,8 +2,9 @@
 
 import React from "react";
 import logo from "../assets/boothstalgia.png";
+import ShareView from "./ShareView"; // Hanya impor ShareView
 
-function DownloadModal({ onClose }) {
+function DownloadModal({ onClose, finalImage }) {
   return (
     // Background overlay
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -22,13 +23,19 @@ function DownloadModal({ onClose }) {
           alt="Boothstalgia Logo"
           className="w-24 h-auto mx-auto mb-4"
         />
-        <h2 className="font-display text-2xl mb-2">
-          Your download is starting...
-        </h2>
-        <p className="font-title text-sm">
-          Your moment has been captured with Boothstalgia!<br></br> <br></br>
-          Thank you and have a joyful day!
+        <h2 className="font-display text-2xl mb-2">Download Started!</h2>
+        <p className="font-title text-sm mb-4">
+          Your moment has been captured with Boothstalgia!
         </p>
+
+        {/* --- Bagian Berbagi --- */}
+        {finalImage && (
+          <>
+            <hr className="border-t-2 border-booth-btn-shadow my-4" />
+            {/* Hanya tampilkan komponen ShareView */}
+            <ShareView finalImage={finalImage} />
+          </>
+        )}
       </div>
     </div>
   );

@@ -17,6 +17,11 @@ function App() {
   const [selectedFrame, setSelectedFrame] = useState(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
+  // State baru untuk menyimpan hasil GIF dari CameraView
+  const [gifResult, setGifResult] = useState(null);
+  // State baru untuk menyimpan gambar final yang akan dibagikan/diunduh
+  const [finalImage, setFinalImage] = useState(null);
+
   const getTitle = () => {
     if (currentView === "camera") return "Take Photo";
     if (currentView === "filter") return "Choose Filter";
@@ -26,11 +31,14 @@ function App() {
     return "Boothstalgia";
   };
 
+  // Fungsi reset diupdate untuk membersihkan state baru
   const handleReset = () => {
     setCapturedPhotos([]);
     setSelectedFilter("");
     setSelectedFrame(null);
     setIsDownloadModalOpen(false);
+    setGifResult(null); // Reset hasil GIF
+    setFinalImage(null); // Reset gambar final
     setCurrentView("landing");
   };
 
@@ -48,12 +56,14 @@ function App() {
             onNavigate={setCurrentView}
             onCapture={setCapturedPhotos}
             currentPhotos={capturedPhotos}
+            setGifResult={setGifResult} // Lewatkan fungsi untuk menyimpan hasil GIF
           />
         );
       case "filter":
         return (
           <ChooseFilter
             photos={capturedPhotos}
+            gif={gifResult} // Teruskan hasil GIF ke halaman filter
             onNavigate={setCurrentView}
             selectedFilter={selectedFilter}
             setSelectedFilter={setSelectedFilter}
@@ -63,11 +73,16 @@ function App() {
         return (
           <ChooseFrame
             photos={capturedPhotos}
+            gif={gifResult} // Teruskan hasil GIF ke halaman frame
             filter={selectedFilter}
             onNavigate={setCurrentView}
             selectedFrame={selectedFrame}
             setSelectedFrame={setSelectedFrame}
-            openDownloadModal={() => setIsDownloadModalOpen(true)}
+            // Update fungsi ini untuk menerima data URL gambar final
+            openDownloadModal={(dataUrl) => {
+              setFinalImage(dataUrl);
+              setIsDownloadModalOpen(true);
+            }}
           />
         );
       default:
@@ -76,11 +91,8 @@ function App() {
   };
 
   return (
-    // Gunakan React Fragment <> untuk membungkus semuanya
     <>
       <main className="bg-booth-bg min-h-screen w-full flex flex-col items-center justify-center p-4 font-display">
-        {/* Modal TIDAK LAGI di sini */}
-
         {currentView === "landing" ? (
           <img
             src={logo}
@@ -100,8 +112,10 @@ function App() {
         </p>
       </main>
 
-      {/* PINDAHKAN Modal ke sini, di luar <main> */}
-      {isDownloadModalOpen && <DownloadModal onClose={handleReset} />}
+      {/* Modal sekarang akan menerima gambar final untuk diteruskan ke fitur berbagi */}
+      {isDownloadModalOpen && (
+        <DownloadModal onClose={handleReset} finalImage={finalImage} />
+      )}
     </>
   );
 }

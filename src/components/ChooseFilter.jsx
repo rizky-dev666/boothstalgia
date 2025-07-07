@@ -1,28 +1,20 @@
 // src/components/ChooseFilter.jsx
 
-import React, { useState } from "react";
+import React from "react";
+import BoothButton from "./BoothButton";
 
-// Tombol kustom bisa diimpor atau didefinisikan ulang
-const BoothButton = ({ onClick, children, className = "" }) => (
-  <button
-    onClick={onClick}
-    className={`w-full bg-booth-btn text-booth-brown font-bold text-xl py-2 px-4 rounded-xl border-b-2 border-booth-btn-shadow shadow-booth-button active:translate-y-1 active:shadow-none transition-all ${className}`}
-  >
-    {children}
-  </button>
-);
-
-// Menerima props dari App.jsx
+// Komponen sekarang menerima 'gif' sebagai prop dari App.jsx
 function ChooseFilter({
   photos,
+  gif,
   onNavigate,
   selectedFilter,
   setSelectedFilter,
 }) {
-  // State lokal untuk menentukan foto mana yang sedang ditampilkan besar
-  const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
+  // Menentukan sumber gambar utama: utamakan GIF, jika tidak ada, gunakan foto pertama.
+  const mainDisplaySrc =
+    gif || (photos && photos.length > 0 ? photos[0] : null);
 
-  // Daftar filter yang tersedia
   const filters = [
     { name: "B&W", class: "grayscale" },
     { name: "Light", class: "brightness-125" },
@@ -30,14 +22,14 @@ function ChooseFilter({
     { name: "Pop", class: "saturate-150 contrast-125" },
   ];
 
-  // Jika tidak ada foto, tampilkan pesan
-  if (!photos || photos.length === 0) {
+  // Jika tidak ada foto atau GIF, tampilkan pesan error
+  if (!mainDisplaySrc) {
     return (
       <div className="text-white text-center">
-        <p>No photos captured. Please go back.</p>
+        <p>Tidak ada foto atau GIF yang diambil. Silakan kembali.</p>
         <div className="mt-4">
           <BoothButton onClick={() => onNavigate("camera")}>
-            Back to Camera
+            Kembali ke Kamera
           </BoothButton>
         </div>
       </div>
@@ -46,41 +38,44 @@ function ChooseFilter({
 
   return (
     <div className="flex flex-col text-white">
-      <p className="font-bold text-lg mb-1">Result :</p>
+      <p className="font-bold text-lg mb-1">Preview:</p>
 
-      {/* Pratinjau Foto Utama */}
+      {/* Pratinjau Foto/GIF Utama */}
       <div className="w-full bg-black h-48 rounded-lg mb-2 flex items-center justify-center text-gray-400 overflow-hidden">
         <img
-          src={photos[mainPhotoIndex]}
-          alt={`Preview ${mainPhotoIndex + 1}`}
+          src={mainDisplaySrc}
+          alt="Preview"
+          // Terapkan filter yang dipilih ke pratinjau
           className={`w-full h-full object-cover transition-all duration-300 ${
-            selectedFilter !== "none" ? selectedFilter : ""
+            selectedFilter || ""
           }`}
         />
       </div>
 
-      {/* Thumbnail Foto-foto lainnya */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        {photos.map((photoSrc, index) => (
-          <div
-            key={index}
-            className={`w-full h-16 bg-gray-900 rounded-md overflow-hidden cursor-pointer transition-all ${
-              mainPhotoIndex === index ? "border-4 border-booth-btn" : ""
-            }`}
-            onClick={() => setMainPhotoIndex(index)}
-          >
-            <img
-              src={photoSrc}
-              alt={`Capture ${index + 1}`}
-              className={`w-full h-full object-cover ${
-                selectedFilter !== "none" ? selectedFilter : ""
-              }`}
-            />
+      {/* Sembunyikan thumbnail jika modenya adalah GIF */}
+      {!gif && (
+        <>
+          <p className="font-bold text-lg mb-1">Result ({photos.length}/4):</p>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {photos.map((photoSrc, index) => (
+              <div
+                key={index}
+                className="w-full h-16 bg-gray-900 rounded-md overflow-hidden"
+              >
+                <img
+                  src={photoSrc}
+                  alt={`Capture ${index + 1}`}
+                  className={`w-full h-full object-cover ${
+                    selectedFilter || ""
+                  }`}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
-      <p className="font-bold text-lg mb-2">Choose Filter :</p>
+      <p className="font-bold text-lg mb-2">Choose Filter:</p>
       <div className="grid grid-cols-4 gap-2 mb-4">
         {filters.map((filter) => (
           <button
@@ -98,9 +93,8 @@ function ChooseFilter({
       </div>
 
       <div className="w-full space-y-3">
-        {/* Tombol Next akan kita fungsikan nanti untuk ke halaman frame */}
         <BoothButton onClick={() => onNavigate("frame")}>Next</BoothButton>
-        <BoothButton onClick={() => setSelectedFilter("none")}>
+        <BoothButton onClick={() => setSelectedFilter("")}>
           Reset Filter
         </BoothButton>
         <BoothButton onClick={() => onNavigate("camera")}>Back</BoothButton>
