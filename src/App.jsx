@@ -13,12 +13,11 @@ import HowToUseView from "./components/HowToUseView";
 function App() {
   const [currentView, setCurrentView] = useState("landing");
   const [capturedPhotos, setCapturedPhotos] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState(""); // Default: tidak ada filter
-  const [selectedFrame, setSelectedFrame] = useState(null); // <-- State baru untuk frame
-  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false); // <-- State untuk modal
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [selectedFrame, setSelectedFrame] = useState(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const getTitle = () => {
-    // ... (fungsi ini tidak berubah)
     if (currentView === "camera") return "Take Photo";
     if (currentView === "filter") return "Choose Filter";
     if (currentView === "frame") return "Choose Frame";
@@ -27,7 +26,6 @@ function App() {
     return "Boothstalgia";
   };
 
-  // Fungsi untuk mereset semua dari awal
   const handleReset = () => {
     setCapturedPhotos([]);
     setSelectedFilter("");
@@ -40,9 +38,9 @@ function App() {
     switch (currentView) {
       case "landing":
         return <LandingPage onNavigate={setCurrentView} />;
-      case "about": // <-- TAMBAHKAN INI
+      case "about":
         return <AboutView onNavigate={setCurrentView} />;
-      case "how-to-use": // <-- TAMBAHKAN INI
+      case "how-to-use":
         return <HowToUseView onNavigate={setCurrentView} />;
       case "camera":
         return (
@@ -61,7 +59,7 @@ function App() {
             setSelectedFilter={setSelectedFilter}
           />
         );
-      case "frame": // <-- Tambahkan case untuk halaman frame
+      case "frame":
         return (
           <ChooseFrame
             photos={capturedPhotos}
@@ -78,24 +76,33 @@ function App() {
   };
 
   return (
-    <main className="bg-booth-bg min-h-screen w-full flex flex-col items-center justify-center p-4 font-display">
-      {/* Conditionally render modal on top of everything */}
-      {isDownloadModalOpen && <DownloadModal onClose={handleReset} />}
+    // Gunakan React Fragment <> untuk membungkus semuanya
+    <>
+      <main className="bg-booth-bg min-h-screen w-full flex flex-col items-center justify-center p-4 font-display">
+        {/* Modal TIDAK LAGI di sini */}
 
-      {currentView === "landing" ? (
-        <img src={logo} alt="Boothstalgia Logo" className="w-40 h-auto mb-5" />
-      ) : (
-        <h1 className="text-5xl font-title text-booth-brown drop-shadow-booth-title mb-4 text-center">
-          {getTitle()}
-        </h1>
-      )}
-      <div className="bg-booth-brown w-full max-w-sm rounded-3xl p-6 shadow-booth-container">
-        {renderView()}
-      </div>
-      <p className="text-booth-brown mt-4">
-        Made with love by <span className="font-bold">kiroosevelt</span>
-      </p>
-    </main>
+        {currentView === "landing" ? (
+          <img
+            src={logo}
+            alt="Boothstalgia Logo"
+            className="w-40 h-auto mb-5"
+          />
+        ) : (
+          <h1 className="text-5xl font-title text-booth-brown drop-shadow-booth-title mb-4 text-center">
+            {getTitle()}
+          </h1>
+        )}
+        <div className="bg-booth-brown w-full max-w-sm rounded-3xl p-6 shadow-booth-container">
+          {renderView()}
+        </div>
+        <p className="text-booth-brown mt-4">
+          Made with love by <span className="font-bold">kiroosevelt</span>
+        </p>
+      </main>
+
+      {/* PINDAHKAN Modal ke sini, di luar <main> */}
+      {isDownloadModalOpen && <DownloadModal onClose={handleReset} />}
+    </>
   );
 }
 

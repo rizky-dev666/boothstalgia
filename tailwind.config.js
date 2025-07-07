@@ -9,6 +9,7 @@ export default {
         "booth-btn": "#EAD7B2", // Warna tombol (krem)
         "booth-btn-shadow": "#D4B483", // Warna bayangan/border tombol (emas)
         'booth-cream': '#EED6C4',
+        'booth-beige': '#F3E9D2',
       },
       fontFamily: {
         // Ganti 'Gorditas' & 'Lilita One' dengan nama font Anda
