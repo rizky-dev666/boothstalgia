@@ -4,16 +4,52 @@ import React, { useRef, useEffect } from "react";
 import BoothButton from "./BoothButton";
 import { downloadImage } from "../utils/imageUtils.js";
 
-// Impor frame-frame Anda
+// 1. Impor semua gambar frame Anda
 import frame1Src from "../assets/frames/Blue-Cute-Heart.png";
-// import frame2Src from '../assets/frames/Green-Dark-Green.png';
+import frame2Src from "../assets/frames/Green-Dark-Green.png";
+import frame3Src from "../assets/frames/Green-Light-Yellow.png";
+import frame4Src from "../assets/frames/Neon-Green-Purple.png";
 
 const frameOptions = [
   { id: "frame1", src: frame1Src },
-  // { id: "frame2", src: frame2Src },
+  { id: "frame2", src: frame2Src },
+  { id: "frame3", src: frame3Src },
+  { id: "frame4", src: frame4Src },
 ];
 
-// FUNGSI BANTUAN untuk menggambar foto dengan sudut tumpul
+// 2. Buat "Peta Layout" untuk setiap frame
+// Setiap ID frame memiliki set koordinatnya sendiri.
+const frameLayouts = {
+  frame1: [
+    { x: 330, y: 620, w: 1210, h: 700, radius: 20 },
+    { x: 330, y: 1690, w: 1210, h: 700, radius: 20 },
+    { x: 330, y: 2750, w: 1210, h: 700, radius: 20 },
+    { x: 330, y: 3810, w: 1210, h: 700, radius: 20 },
+  ],
+  frame2: [
+    // PENTING: Ganti angka ini dengan hasil pengukuran Anda untuk frame2
+    { x: 325, y: 945, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 1850, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 2760, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 3670, w: 1230, h: 710, radius: 20 },
+  ],
+  frame3: [
+    // PENTING: Ganti angka ini dengan hasil pengukuran Anda untuk frame2
+    { x: 325, y: 650, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 1565, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 2475, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 3380, w: 1230, h: 710, radius: 20 },
+  ],
+  frame4: [
+    // PENTING: Ganti angka ini dengan hasil pengukuran Anda untuk frame2
+    { x: 325, y: 945, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 1850, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 2760, w: 1230, h: 710, radius: 20 },
+    { x: 325, y: 3670, w: 1230, h: 710, radius: 20 },
+  ],
+};
+
+// Fungsi bantuan untuk menggambar sudut tumpul
 function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.save();
   ctx.beginPath();
@@ -27,9 +63,9 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.lineTo(x, y + radius);
   ctx.quadraticCurveTo(x, y, x + radius, y);
   ctx.closePath();
-  ctx.clip(); // Terapkan clipping path
+  ctx.clip();
   ctx.drawImage(image, x, y, width, height);
-  ctx.restore(); // Hapus clipping path untuk gambar selanjutnya
+  ctx.restore();
 }
 
 function ChooseFrame({
@@ -57,8 +93,6 @@ function ChooseFrame({
     }
   };
 
-  // Ganti seluruh useEffect di ChooseFrame.jsx dengan ini:
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !selectedFrame || !photos || photos.length === 0) {
@@ -68,6 +102,10 @@ function ChooseFrame({
       }
       return;
     }
+
+    // 3. Ambil posisi foto secara dinamis dari peta layout
+    const photoPositions = frameLayouts[selectedFrame.id];
+    if (!photoPositions) return; // Keluar jika layout untuk frame terpilih tidak ada
 
     const ctx = canvas.getContext("2d");
     const loadImage = (src) =>
@@ -87,31 +125,16 @@ function ChooseFrame({
         canvas.width = frameImg.width;
         canvas.height = frameImg.height;
 
-        const photoPositions = [
-          { x: 330, y: 620, w: 1210, h: 700, radius: 20 },
-          { x: 330, y: 1690, w: 1210, h: 700, radius: 20 },
-          { x: 330, y: 2750, w: 1210, h: 700, radius: 20 },
-          { x: 330, y: 3810, w: 1210, h: 700, radius: 20 },
-        ];
-
-        // --- URUTAN GAMBAR DIUBAH KEMBALI ---
-
-        // 1. Gambar FRAME sebagai lapisan paling bawah
         ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
-
-        // 2. Terapkan filter yang dipilih
         ctx.filter = getCanvasFilter(filter);
 
-        // 3. Gambar setiap FOTO di atas frame dengan sudut tumpul
         photoImgs.forEach((pImg, index) => {
           if (photoPositions[index]) {
             const pos = photoPositions[index];
-            // Panggil fungsi bantuan untuk menggambar dengan sudut tumpul
             drawRoundedImage(ctx, pImg, pos.x, pos.y, pos.w, pos.h, pos.radius);
           }
         });
 
-        // 4. Reset filter setelah semua foto digambar
         ctx.filter = "none";
       })
       .catch((err) => console.error("Gagal memuat gambar:", err));

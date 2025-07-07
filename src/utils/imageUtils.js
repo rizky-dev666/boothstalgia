@@ -10,7 +10,7 @@ export const downloadImage = (dataUrl) => {
 
   const link = document.createElement("a");
   link.href = dataUrl;
-  link.download = "boothstalgia-result.png"; // Nama file yang akan diunduh
+  link.download = "boothstalgia.png"; // Nama file yang akan diunduh
 
   // Perintah ini 'disembunyikan' dari pengguna
   document.body.appendChild(link);
