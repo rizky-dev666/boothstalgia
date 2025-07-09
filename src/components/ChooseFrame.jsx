@@ -196,7 +196,7 @@ function ChooseFrame({
       )}
 
       <p className="font-bold text-lg mb-2">Preview:</p>
-      <div className="w-full bg-gray-900 rounded-lg overflow-hidden flex justify-center items-center h-64">
+      <div className="w-full bg-gray-900 rounded-lg overflow-hidden flex justify-center">
         {/* 5. Tampilkan GIF atau Kanvas secara kondisional */}
         {gif ? (
           <img
