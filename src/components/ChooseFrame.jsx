@@ -3,8 +3,9 @@
 import React, { useRef, useEffect } from "react";
 import BoothButton from "./BoothButton";
 import { downloadImage } from "../utils/imageUtils.js";
+import GIF from "gif.js";
 
-// 1. Impor semua gambar frame Anda
+// Impor semua gambar frame Anda
 import frame1Src from "../assets/frames/Blue-Cute-Heart.png";
 import frame2Src from "../assets/frames/Green-Dark-Green.png";
 import frame3Src from "../assets/frames/Green-Light-Yellow.png";
@@ -17,7 +18,6 @@ const frameOptions = [
   { id: "frame4", src: frame4Src },
 ];
 
-// 2. Buat "Peta Layout" untuk setiap frame
 const frameLayouts = {
   frame1: [
     { x: 330, y: 620, w: 1210, h: 700, radius: 20 },
@@ -64,10 +64,8 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.restore();
 }
 
-// 1. Tambahkan 'gif' ke dalam props
 function ChooseFrame({
   photos,
-  gif,
   filter,
   onNavigate,
   selectedFrame,
@@ -92,17 +90,6 @@ function ChooseFrame({
   };
 
   useEffect(() => {
-    // 2. Jika mode GIF, jangan lakukan apa-apa pada kanvas
-    if (gif) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-      return;
-    }
-
-    // --- LOGIKA ASLI ANDA UNTUK MENGGAMBAR FOTO (sudah benar) ---
     const canvas = canvasRef.current;
     if (!canvas || !selectedFrame || !photos || photos.length === 0) {
       if (canvas) {
@@ -143,78 +130,87 @@ function ChooseFrame({
         ctx.filter = "none";
       })
       .catch((err) => console.error("Gagal memuat gambar:", err));
-    // --- AKHIR DARI LOGIKA ASLI ANDA ---
-  }, [photos, gif, filter, selectedFrame]);
+  }, [photos, filter, selectedFrame]);
 
-  // 3. Modifikasi fungsi unduh
-  const handleDownload = () => {
-    if (gif) {
-      // Jika mode GIF, unduh GIF-nya langsung
-      downloadImage(gif, "boothstalgia.gif");
-      openDownloadModal(gif);
-    } else {
-      // Jika mode foto, unduh dari kanvas seperti sebelumnya
-      const dataUrl = canvasRef.current.toDataURL("image/png");
-      downloadImage(dataUrl, "boothstalgia.png");
-      openDownloadModal(dataUrl);
-    }
+  // Fungsi untuk mengunduh foto dengan frame
+  const handleDownloadFrame = () => {
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    downloadImage(dataUrl, "boothstalgia.png");
+    openDownloadModal(dataUrl);
+  };
+
+  // Fungsi BARU untuk membuat dan mengunduh GIF
+  const handleDownloadGif = () => {
+    const loadImage = (src) =>
+      new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+      });
+
+    Promise.all(photos.map(loadImage)).then((images) => {
+      const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        workerScript: "/gif.worker.js",
+      });
+
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      images.forEach((img) => {
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        tempCtx.filter = getCanvasFilter(filter);
+        tempCtx.drawImage(img, 0, 0);
+        tempCtx.filter = "none";
+        gif.addFrame(tempCanvas, { copy: true, delay: 500 }); // 500ms delay per frame
+      });
+
+      gif.on("finished", (blob) => {
+        const gifUrl = URL.createObjectURL(blob);
+        downloadImage(gifUrl, "boothstalgia.gif");
+        openDownloadModal(gifUrl);
+      });
+
+      gif.render();
+    });
   };
 
   return (
     <div className="flex flex-col text-white">
-      {/* 4. Sembunyikan pilihan frame jika mode GIF */}
-      {gif ? (
-        <div className="text-center p-4 bg-gray-900 rounded-lg mb-4">
-          <p className="font-title">
-            Mode GIF tidak dapat digabung dengan frame. Silakan langsung unduh
-            hasil Anda.
-          </p>
-        </div>
-      ) : (
-        <>
-          <p className="font-bold text-lg mb-2">Choose Frame:</p>
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            {frameOptions.map((frame) => (
-              <button
-                key={frame.id}
-                onClick={() => setSelectedFrame(frame)}
-                className={`rounded-lg transition-all ${
-                  selectedFrame?.id === frame.id
-                    ? "border-4 border-booth-btn"
-                    : ""
-                }`}
-              >
-                <img
-                  src={frame.src}
-                  alt={frame.id}
-                  className="w-full h-auto rounded-md"
-                />
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      <p className="font-bold text-lg mb-2">Choose Frame:</p>
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {frameOptions.map((frame) => (
+          <button
+            key={frame.id}
+            onClick={() => setSelectedFrame(frame)}
+            className={`rounded-lg transition-all ${
+              selectedFrame?.id === frame.id ? "border-4 border-booth-btn" : ""
+            }`}
+          >
+            <img
+              src={frame.src}
+              alt={frame.id}
+              className="w-full h-auto rounded-md"
+            />
+          </button>
+        ))}
+      </div>
 
       <p className="font-bold text-lg mb-2">Preview:</p>
       <div className="w-full bg-gray-900 rounded-lg overflow-hidden flex justify-center">
-        {/* 5. Tampilkan GIF atau Kanvas secara kondisional */}
-        {gif ? (
-          <img
-            src={gif}
-            alt="GIF Preview"
-            className={`max-w-full max-h-full object-contain ${filter || ""}`}
-          />
-        ) : (
-          <canvas
-            ref={canvasRef}
-            style={{ maxWidth: "100%", height: "auto" }}
-          />
-        )}
+        <canvas ref={canvasRef} style={{ maxWidth: "100%", height: "auto" }} />
       </div>
 
       <div className="w-full space-y-3 mt-4">
-        <BoothButton onClick={handleDownload} disabled={!gif && !selectedFrame}>
-          Download
+        <BoothButton onClick={handleDownloadFrame} disabled={!selectedFrame}>
+          Download Photo
+        </BoothButton>
+        {/* Tombol baru untuk download GIF */}
+        <BoothButton onClick={handleDownloadGif} disabled={photos.length === 0}>
+          Download GIF
         </BoothButton>
         <BoothButton onClick={() => onNavigate("filter")}>Back</BoothButton>
       </div>
