@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import LandingPage from "./components/LandingPage";
 import CameraView from "./components/CameraView";
 import ChooseFilter from "./components/ChooseFilter";
@@ -9,6 +9,7 @@ import DownloadModal from "./components/DownloadModal";
 import logo from "./assets/boothstalgia.png";
 import AboutView from "./components/AboutView";
 import HowToUseView from "./components/HowToUseView";
+import { FaPlay, FaPause } from "react-icons/fa";
 
 function App() {
   const [currentView, setCurrentView] = useState("landing");
@@ -16,11 +17,35 @@ function App() {
   const [selectedFilter, setSelectedFilter] = useState("");
   const [selectedFrame, setSelectedFrame] = useState(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
-
-  // State baru untuk menyimpan hasil GIF dari CameraView
-  const [gifResult, setGifResult] = useState(null);
-  // State baru untuk menyimpan gambar final yang akan dibagikan/diunduh
   const [finalImage, setFinalImage] = useState(null);
+
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio
+        .play()
+        .then(() => {
+          setIsMusicPlaying(true);
+        })
+        .catch((error) => {
+          console.log("Autoplay music was blocked by the browser:", error);
+          setIsMusicPlaying(false);
+        });
+    }
+  }, []);
+
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (isMusicPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setIsMusicPlaying(!isMusicPlaying);
+  };
 
   const getTitle = () => {
     if (currentView === "camera") return "Take Photo";
@@ -31,15 +56,19 @@ function App() {
     return "Boothstalgia";
   };
 
-  // Fungsi reset diupdate untuk membersihkan state baru
-  const handleReset = () => {
+  // Fungsi ini sekarang hanya untuk kembali ke landing page
+  const handleResetToHome = () => {
     setCapturedPhotos([]);
     setSelectedFilter("");
     setSelectedFrame(null);
     setIsDownloadModalOpen(false);
-    setGifResult(null); // Reset hasil GIF
-    setFinalImage(null); // Reset gambar final
+    setFinalImage(null);
     setCurrentView("landing");
+  };
+
+  // 1. Buat fungsi baru HANYA untuk menutup modal
+  const closeDownloadModal = () => {
+    setIsDownloadModalOpen(false);
   };
 
   const renderView = () => {
@@ -56,14 +85,12 @@ function App() {
             onNavigate={setCurrentView}
             onCapture={setCapturedPhotos}
             currentPhotos={capturedPhotos}
-            setGifResult={setGifResult} // Lewatkan fungsi untuk menyimpan hasil GIF
           />
         );
       case "filter":
         return (
           <ChooseFilter
             photos={capturedPhotos}
-            gif={gifResult} // Teruskan hasil GIF ke halaman filter
             onNavigate={setCurrentView}
             selectedFilter={selectedFilter}
             setSelectedFilter={setSelectedFilter}
@@ -73,16 +100,16 @@ function App() {
         return (
           <ChooseFrame
             photos={capturedPhotos}
-            gif={gifResult} // Teruskan hasil GIF ke halaman frame
             filter={selectedFilter}
             onNavigate={setCurrentView}
             selectedFrame={selectedFrame}
             setSelectedFrame={setSelectedFrame}
-            // Update fungsi ini untuk menerima data URL gambar final
             openDownloadModal={(dataUrl) => {
               setFinalImage(dataUrl);
               setIsDownloadModalOpen(true);
             }}
+            // 2. Teruskan fungsi reset ke halaman ChooseFrame
+            onGoHome={handleResetToHome}
           />
         );
       default:
@@ -93,6 +120,16 @@ function App() {
   return (
     <>
       <main className="bg-booth-bg min-h-screen w-full flex flex-col items-center justify-center p-4 font-display">
+        <audio ref={audioRef} src="/music.mp3" loop />
+
+        <button
+          onClick={toggleMusic}
+          className="fixed top-4 right-4 bg-booth-brown text-booth-beige w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-50 hover:opacity-80 transition-opacity"
+          aria-label={isMusicPlaying ? "Pause music" : "Play music"}
+        >
+          {isMusicPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
+        </button>
+
         {currentView === "landing" ? (
           <img
             src={logo}
@@ -112,9 +149,9 @@ function App() {
         </p>
       </main>
 
-      {/* Modal sekarang akan menerima gambar final untuk diteruskan ke fitur berbagi */}
+      {/* 3. Gunakan fungsi closeDownloadModal untuk prop onClose */}
       {isDownloadModalOpen && (
-        <DownloadModal onClose={handleReset} finalImage={finalImage} />
+        <DownloadModal onClose={closeDownloadModal} finalImage={finalImage} />
       )}
     </>
   );

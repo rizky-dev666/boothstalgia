@@ -5,7 +5,6 @@ import BoothButton from "./BoothButton";
 import { downloadImage } from "../utils/imageUtils.js";
 import GIF from "gif.js";
 
-// Impor semua gambar frame Anda
 import frame1Src from "../assets/frames/Blue-Cute-Heart.png";
 import frame2Src from "../assets/frames/Green-Dark-Green.png";
 import frame3Src from "../assets/frames/Green-Light-Yellow.png";
@@ -45,7 +44,6 @@ const frameLayouts = {
   ],
 };
 
-// Fungsi bantuan untuk menggambar sudut tumpul
 function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.save();
   ctx.beginPath();
@@ -64,6 +62,7 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.restore();
 }
 
+// 1. Terima prop 'onGoHome'
 function ChooseFrame({
   photos,
   filter,
@@ -71,6 +70,7 @@ function ChooseFrame({
   selectedFrame,
   setSelectedFrame,
   openDownloadModal,
+  onGoHome,
 }) {
   const canvasRef = useRef(null);
 
@@ -132,14 +132,12 @@ function ChooseFrame({
       .catch((err) => console.error("Gagal memuat gambar:", err));
   }, [photos, filter, selectedFrame]);
 
-  // Fungsi untuk mengunduh foto dengan frame
   const handleDownloadFrame = () => {
     const dataUrl = canvasRef.current.toDataURL("image/png");
     downloadImage(dataUrl, "boothstalgia.png");
     openDownloadModal(dataUrl);
   };
 
-  // Fungsi BARU untuk membuat dan mengunduh GIF
   const handleDownloadGif = () => {
     const loadImage = (src) =>
       new Promise((resolve, reject) => {
@@ -165,7 +163,7 @@ function ChooseFrame({
         tempCtx.filter = getCanvasFilter(filter);
         tempCtx.drawImage(img, 0, 0);
         tempCtx.filter = "none";
-        gif.addFrame(tempCanvas, { copy: true, delay: 500 }); // 500ms delay per frame
+        gif.addFrame(tempCanvas, { copy: true, delay: 500 });
       });
 
       gif.on("finished", (blob) => {
@@ -208,11 +206,12 @@ function ChooseFrame({
         <BoothButton onClick={handleDownloadFrame} disabled={!selectedFrame}>
           Download Photo
         </BoothButton>
-        {/* Tombol baru untuk download GIF */}
         <BoothButton onClick={handleDownloadGif} disabled={photos.length === 0}>
           Download GIF
         </BoothButton>
         <BoothButton onClick={() => onNavigate("filter")}>Back</BoothButton>
+        {/* 2. Tambahkan tombol Home baru */}
+        <BoothButton onClick={onGoHome}>Home</BoothButton>
       </div>
     </div>
   );
