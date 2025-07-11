@@ -1,5 +1,3 @@
-// src/App.jsx
-
 import { useState, useEffect, useRef } from "react";
 import LandingPage from "./components/LandingPage";
 import CameraView from "./components/CameraView";
@@ -10,6 +8,11 @@ import logo from "./assets/boothstalgia.png";
 import AboutView from "./components/AboutView";
 import HowToUseView from "./components/HowToUseView";
 import { FaPlay, FaPause } from "react-icons/fa";
+import MaintenanceView from "./components/MaintenanceView"; // <-- 1. Impor komponen baru
+
+// --- SAKLAR MODE MAINTENANCE ---
+// Ubah nilainya menjadi 'true' untuk mengaktifkan, atau 'false' untuk menonaktifkan.
+const IS_MAINTENANCE_MODE = true;
 
 function App() {
   const [currentView, setCurrentView] = useState("landing");
@@ -18,22 +21,17 @@ function App() {
   const [selectedFrame, setSelectedFrame] = useState(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [finalImage, setFinalImage] = useState(null);
-
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
+    if (IS_MAINTENANCE_MODE) return; // Jangan jalankan musik saat maintenance
     const audio = audioRef.current;
     if (audio) {
       audio
         .play()
-        .then(() => {
-          setIsMusicPlaying(true);
-        })
-        .catch((error) => {
-          console.log("Autoplay music was blocked by the browser:", error);
-          setIsMusicPlaying(false);
-        });
+        .then(() => setIsMusicPlaying(true))
+        .catch(() => setIsMusicPlaying(false));
     }
   }, []);
 
@@ -56,7 +54,6 @@ function App() {
     return "Boothstalgia";
   };
 
-  // Fungsi ini sekarang hanya untuk kembali ke landing page
   const handleResetToHome = () => {
     setCapturedPhotos([]);
     setSelectedFilter("");
@@ -66,12 +63,16 @@ function App() {
     setCurrentView("landing");
   };
 
-  // 1. Buat fungsi baru HANYA untuk menutup modal
   const closeDownloadModal = () => {
     setIsDownloadModalOpen(false);
   };
 
   const renderView = () => {
+    // 2. Jika mode maintenance aktif, tampilkan hanya MaintenanceView
+    if (IS_MAINTENANCE_MODE) {
+      return <MaintenanceView />;
+    }
+
     switch (currentView) {
       case "landing":
         return <LandingPage onNavigate={setCurrentView} />;
@@ -108,7 +109,6 @@ function App() {
               setFinalImage(dataUrl);
               setIsDownloadModalOpen(true);
             }}
-            // 2. Teruskan fungsi reset ke halaman ChooseFrame
             onGoHome={handleResetToHome}
           />
         );
@@ -120,17 +120,20 @@ function App() {
   return (
     <>
       <main className="bg-booth-bg min-h-screen w-full flex flex-col items-center justify-center p-4 font-display">
-        <audio ref={audioRef} src="/music.mp3" loop />
+        {!IS_MAINTENANCE_MODE && <audio ref={audioRef} src="/music.mp3" loop />}
 
-        <button
-          onClick={toggleMusic}
-          className="fixed top-4 right-4 bg-booth-brown text-booth-beige w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-50 hover:opacity-80 transition-opacity"
-          aria-label={isMusicPlaying ? "Pause music" : "Play music"}
-        >
-          {isMusicPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
-        </button>
+        {!IS_MAINTENANCE_MODE && (
+          <button
+            onClick={toggleMusic}
+            className="fixed top-4 right-4 bg-booth-brown text-booth-beige w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-50 hover:opacity-80 transition-opacity"
+            aria-label={isMusicPlaying ? "Pause music" : "Play music"}
+          >
+            {isMusicPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
+          </button>
+        )}
 
-        {currentView === "landing" ? (
+        {/* 3. Atur tampilan logo/judul berdasarkan mode */}
+        {IS_MAINTENANCE_MODE || currentView === "landing" ? (
           <img
             src={logo}
             alt="Boothstalgia Logo"
@@ -141,16 +144,17 @@ function App() {
             {getTitle()}
           </h1>
         )}
+
         <div className="bg-booth-brown w-full max-w-sm rounded-3xl p-6 shadow-booth-container">
           {renderView()}
         </div>
+
         <p className="text-booth-brown mt-4">
           Made with love by <span className="font-bold">kiroosevelt</span>
         </p>
       </main>
 
-      {/* 3. Gunakan fungsi closeDownloadModal untuk prop onClose */}
-      {isDownloadModalOpen && (
+      {!IS_MAINTENANCE_MODE && isDownloadModalOpen && (
         <DownloadModal onClose={closeDownloadModal} finalImage={finalImage} />
       )}
     </>
