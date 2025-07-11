@@ -1,0 +1,15 @@
+{
+  "rewrites": [
+    {
+      "source": "/((?!maintenance.html).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "x-vercel-maintenance",
+          "value": "1"
+        }
+      ],
+      "destination": "/maintenance.html"
+    }
+  ]
+}
