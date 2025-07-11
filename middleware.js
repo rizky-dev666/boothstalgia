@@ -3,16 +3,22 @@ export const config = {
   matcher: "/((?!_next/static|_next/image|favicon.ico|maintenance.html).*)",
 };
 
-export default function middleware(request) {
-  // Cek environment variable MAINTENANCE_MODE
-  if (import.meta.env.MAINTENANCE_MODE === "true") {
-    // Tambahkan header 'x-vercel-maintenance' ke permintaan
-    request.headers.set("x-vercel-maintenance", "1");
+export default async function middleware(request) {
+  // Jika mode maintenance TIDAK aktif, langsung lanjutkan.
+  if (import.meta.env.MAINTENANCE_MODE !== "true") {
+    return;
   }
 
-  // Di lingkungan Edge non-Next.js, kita tidak perlu memanggil 'next()'
-  // Cukup kembalikan request yang sudah dimodifikasi atau biarkan Vercel melanjutkannya.
-  // Namun, untuk memastikan header terpasang, kita lanjutkan dengan membuat 'Response' baru.
-  // Dalam kasus ini, kita bisa membiarkannya undefined agar Vercel melanjutkan proses.
-  return;
+  // Langsung ambil dan tampilkan halaman maintenance
+  // Tanpa try...catch untuk menyederhanakan kode dan menghindari masalah linting.
+  const maintenanceUrl = new URL("/maintenance.html", request.url);
+  const maintenancePage = await fetch(maintenanceUrl);
+
+  return new Response(maintenancePage.body, {
+    status: 503,
+    statusText: "Service Unavailable",
+    headers: {
+      "Content-Type": "text/html",
+    },
+  });
 }
