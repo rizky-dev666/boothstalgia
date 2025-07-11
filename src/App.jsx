@@ -12,7 +12,7 @@ import MaintenanceView from "./components/MaintenanceView"; // <-- 1. Impor komp
 
 // --- SAKLAR MODE MAINTENANCE ---
 // Ubah nilainya menjadi 'true' untuk mengaktifkan, atau 'false' untuk menonaktifkan.
-const IS_MAINTENANCE_MODE = true;
+const IS_MAINTENANCE_MODE = false;
 
 function App() {
   const [currentView, setCurrentView] = useState("landing");
