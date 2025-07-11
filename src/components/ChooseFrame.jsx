@@ -44,7 +44,28 @@ const frameLayouts = {
   ],
 };
 
+// ...DENGAN FUNGSI BARU DI BAWAH INI
 function drawRoundedImage(ctx, image, x, y, width, height, radius) {
+  const targetAspectRatio = width / height;
+  const imageAspectRatio = image.width / image.height;
+
+  let sx = 0;
+  let sy = 0;
+  let sWidth = image.width;
+  let sHeight = image.height;
+
+  // Cek jika aspek rasio gambar tidak cocok dengan slot frame
+  if (imageAspectRatio > targetAspectRatio) {
+    // Jika gambar lebih lebar, potong sisi kiri dan kanan
+    sWidth = image.height * targetAspectRatio;
+    sx = (image.width - sWidth) / 2;
+  } else if (imageAspectRatio < targetAspectRatio) {
+    // Jika gambar lebih tinggi (kasus di HP), potong sisi atas dan bawah
+    sHeight = image.width / targetAspectRatio;
+    sy = (image.height - sHeight) / 2;
+  }
+
+  // Lanjutkan menggambar dengan gambar yang sudah dipotong
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -58,7 +79,10 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.quadraticCurveTo(x, y, x + radius, y);
   ctx.closePath();
   ctx.clip();
-  ctx.drawImage(image, x, y, width, height);
+
+  // Gunakan parameter cropping pada drawImage
+  ctx.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height);
+
   ctx.restore();
 }
 
