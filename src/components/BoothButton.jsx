@@ -1,8 +1,7 @@
 // src/components/BoothButton.jsx
 
 import React from "react";
-// Kita tidak lagi memerlukan tailwind-merge untuk solusi ini
-// import { twMerge } from "tailwind-merge";
+import { motion } from "framer-motion";
 
 const BoothButton = ({
   onClick,
@@ -22,14 +21,16 @@ const BoothButton = ({
   `;
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
       disabled={disabled}
-      // Bersihkan spasi berlebih dari string kelas
       className={buttonClasses.replace(/\s+/g, " ").trim()}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.15, ease: "easeInOut" }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 };
 

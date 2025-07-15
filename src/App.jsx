@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import LandingPage from "./components/LandingPage";
 import CameraView from "./components/CameraView";
 import ChooseFilter from "./components/ChooseFilter";
@@ -8,11 +9,30 @@ import logo from "./assets/boothstalgia.png";
 import AboutView from "./components/AboutView";
 import HowToUseView from "./components/HowToUseView";
 import { FaPlay, FaPause } from "react-icons/fa";
-import MaintenanceView from "./components/MaintenanceView"; // <-- 1. Impor komponen baru
+import MaintenanceView from "./components/MaintenanceView";
 
-// --- SAKLAR MODE MAINTENANCE ---
-// Ubah nilainya menjadi 'true' untuk mengaktifkan, atau 'false' untuk menonaktifkan.
 const IS_MAINTENANCE_MODE = false;
+
+const viewVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.8,
+      ease: "easeInOut",
+      when: "beforeChildren",
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.8,
+      ease: "easeInOut",
+    },
+  },
+};
 
 function App() {
   const [currentView, setCurrentView] = useState("landing");
@@ -25,7 +45,7 @@ function App() {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    if (IS_MAINTENANCE_MODE) return; // Jangan jalankan musik saat maintenance
+    if (IS_MAINTENANCE_MODE) return;
     const audio = audioRef.current;
     if (audio) {
       audio
@@ -68,7 +88,6 @@ function App() {
   };
 
   const renderView = () => {
-    // 2. Jika mode maintenance aktif, tampilkan hanya MaintenanceView
     if (IS_MAINTENANCE_MODE) {
       return <MaintenanceView />;
     }
@@ -132,7 +151,6 @@ function App() {
           </button>
         )}
 
-        {/* 3. Atur tampilan logo/judul berdasarkan mode */}
         {IS_MAINTENANCE_MODE || currentView === "landing" ? (
           <img
             src={logo}
@@ -146,7 +164,18 @@ function App() {
         )}
 
         <div className="bg-booth-brown w-full max-w-sm rounded-3xl p-6 shadow-booth-container">
-          {renderView()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentView}
+              variants={viewVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={{ duration: 0.8 }}
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <p className="text-booth-brown mt-4">

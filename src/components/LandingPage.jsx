@@ -1,7 +1,23 @@
 // src/components/LandingPage.jsx
 
 import React from "react";
-import BoothButton from "./BoothButton"; // Pastikan impor ini ada
+import { motion } from "framer-motion";
+import BoothButton from "./BoothButton";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      straggerChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 function LandingPage({ onNavigate }) {
   const handleStartClick = async () => {
@@ -21,19 +37,27 @@ function LandingPage({ onNavigate }) {
   };
 
   return (
-    <div className="flex flex-col items-center text-center text-booth-bg">
-      <h2 className="font-title text-3xl">Welcome to</h2>
-      <h1 className="font-display text-4xl mb-8">BOOTHSTALGIA</h1>
+    <motion.div
+      className="flex flex-col items-center text-center text-booth-bg"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2 className="font-title text-3xl" variants={itemVariants}>
+        Welcome to
+      </motion.h2>
+      <motion.h1 className="font-display text-4xl mb-8" variants={itemVariants}>
+        BOOTHSTALGIA
+      </motion.h1>
 
-      <div className="w-full space-y-4">
+      <motion.div className="w-full space-y-4" variants={itemVariants}>
         <BoothButton onClick={handleStartClick}>Start</BoothButton>
         <BoothButton onClick={() => onNavigate("about")}>About</BoothButton>
-        {/* Baris di bawah ini telah diperbaiki */}
         <BoothButton onClick={() => onNavigate("how-to-use")}>
           How To Use
         </BoothButton>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 

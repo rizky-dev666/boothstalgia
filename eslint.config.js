@@ -1,29 +1,52 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+// eslint.config.js
 
-export default defineConfig([
-  globalIgnores(['dist']),
+import globals from "globals";
+import js from "@eslint/js";
+import react from "eslint-plugin-react"; // <-- Perubahan 1: Impor plugin react
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+
+export default [
   {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    ignores: ["dist/"], // Abaikan folder dist
+  },
+  {
+    files: ["**/*.{js,jsx}"],
+    plugins: {
+      react, // <-- Perubahan 2: Daftarkan plugin
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+      },
       parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // --- Perubahan 3: Gunakan konfigurasi yang direkomendasikan ---
+      ...js.configs.recommended.rules,
+      ...react.configs.recommended.rules,
+      ...react.configs["jsx-runtime"].rules, // <-- Ini penting untuk React 17+
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": "warn",
+
+      // Anda bisa tetap menggunakan aturan custom Anda jika perlu
+      "react/prop-types": "off", // Nonaktifkan jika Anda tidak menggunakan PropTypes
+      "no-unused-vars": [
+        "warn", // Ubah ke 'warn' agar tidak menghentikan aplikasi saat development
+        { varsIgnorePattern: "^[A-Z_]" },
+      ],
+    },
+    // --- Perubahan 4: Tambahkan pengaturan untuk versi React ---
+    settings: {
+      react: {
+        version: "detect",
+      },
     },
   },
-])
+];

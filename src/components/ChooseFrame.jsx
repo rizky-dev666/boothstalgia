@@ -44,7 +44,6 @@ const frameLayouts = {
   ],
 };
 
-// ...DENGAN FUNGSI BARU DI BAWAH INI
 function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   const targetAspectRatio = width / height;
   const imageAspectRatio = image.width / image.height;
@@ -54,18 +53,14 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   let sWidth = image.width;
   let sHeight = image.height;
 
-  // Cek jika aspek rasio gambar tidak cocok dengan slot frame
   if (imageAspectRatio > targetAspectRatio) {
-    // Jika gambar lebih lebar, potong sisi kiri dan kanan
     sWidth = image.height * targetAspectRatio;
     sx = (image.width - sWidth) / 2;
   } else if (imageAspectRatio < targetAspectRatio) {
-    // Jika gambar lebih tinggi (kasus di HP), potong sisi atas dan bawah
     sHeight = image.width / targetAspectRatio;
     sy = (image.height - sHeight) / 2;
   }
 
-  // Lanjutkan menggambar dengan gambar yang sudah dipotong
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -80,13 +75,11 @@ function drawRoundedImage(ctx, image, x, y, width, height, radius) {
   ctx.closePath();
   ctx.clip();
 
-  // Gunakan parameter cropping pada drawImage
   ctx.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height);
 
   ctx.restore();
 }
 
-// 1. Terima prop 'onGoHome'
 function ChooseFrame({
   photos,
   filter,
@@ -144,14 +137,32 @@ function ChooseFrame({
         canvas.width = frameImg.width;
         canvas.height = frameImg.height;
         ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
-        ctx.filter = getCanvasFilter(filter);
+
         photoImgs.forEach((pImg, index) => {
           if (photoPositions[index]) {
             const pos = photoPositions[index];
-            drawRoundedImage(ctx, pImg, pos.x, pos.y, pos.w, pos.h, pos.radius);
+
+            // Buat canvas sementara untuk menerapkan filter
+            const tempCanvas = document.createElement("canvas");
+            const tempCtx = tempCanvas.getContext("2d");
+            tempCanvas.width = pImg.width;
+            tempCanvas.height = pImg.height;
+            tempCtx.filter = getCanvasFilter(filter);
+            tempCtx.drawImage(pImg, 0, 0);
+
+            // Gambar gambar yang sudah difilter dari canvas sementara
+            // ke canvas utama
+            drawRoundedImage(
+              ctx,
+              tempCanvas,
+              pos.x,
+              pos.y,
+              pos.w,
+              pos.h,
+              pos.radius
+            );
           }
         });
-        ctx.filter = "none";
       })
       .catch((err) => console.error("Gagal memuat gambar:", err));
   }, [photos, filter, selectedFrame]);
@@ -234,7 +245,6 @@ function ChooseFrame({
           Download GIF
         </BoothButton>
         <BoothButton onClick={() => onNavigate("filter")}>Back</BoothButton>
-        {/* 2. Tambahkan tombol Home baru */}
         <BoothButton onClick={onGoHome}>Home</BoothButton>
       </div>
     </div>
