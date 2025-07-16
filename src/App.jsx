@@ -11,7 +11,7 @@ import HowToUseView from "./components/HowToUseView";
 import { FaPlay, FaPause } from "react-icons/fa";
 import MaintenanceView from "./components/MaintenanceView";
 
-const IS_MAINTENANCE_MODE = false;
+const IS_MAINTENANCE_MODE = true;
 
 const viewVariants = {
   hidden: { opacity: 0, scale: 0.95 },
